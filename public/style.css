@@ -1,0 +1,19 @@
+/* Custom styles for Wi-Fi Local Chat */
+body {
+  font-family: 'Cairo', 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+/* Animations and transitions */
+.typing-bubble {
+  animation: bounce 1.2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
