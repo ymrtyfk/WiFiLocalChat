@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wi-Fi Local Chat | محادثة واي فاي المحلية</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- QRious JS for QR Code generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <!-- Google Fonts for Arabic & English -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cairo', 'Inter', sans-serif;
+    }
+    /* Simple custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 h-screen overflow-hidden flex flex-col text-slate-800">
+
+  <!-- Splash / Registration Screen -->
+  <div id="login-screen" class="fixed inset-0 bg-gradient-to-tr from-blue-600 to-indigo-800 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 relative">
+      <!-- Language Toggle in Registration -->
+      <div class="absolute top-4 left-4">
+        <button id="lang-toggle-btn-login" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-1.5 px-3 rounded-full flex items-center gap-1 transition">
+          <i class="fa-solid fa-globe text-indigo-600"></i>
+          <span id="login-lang-name">English</span>
+        </button>
+      </div>
+
+      <div class="text-center mt-4 mb-6">
+        <div class="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-md mb-3 text-white text-3xl">
+          <i class="fa-solid fa-wifi animate-pulse"></i>
+        </div>
+        <h2 id="login-title" class="text-2xl font-bold text-slate-800">محادثة واي فاي المحلية</h2>
+        <p id="login-subtitle" class="text-xs text-slate-500 mt-1">تواصل مجاني بدون إنترنت مع الأجهزة القريبة</p>
+      </div>
+
+      <form id="login-form" class="space-y-5">
+        <div>
+          <label id="label-nickname" class="block text-sm font-semibold text-slate-700 mb-1">الاسم المستعار / اللقب</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400">
+              <i class="fa-solid fa-user"></i>
+            </span>
+            <!-- Custom direction text input -->
+            <input type="text" id="nickname-input" required minlength="2" maxlength="15"
+              class="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
+              placeholder="مثال: أحمد">
+          </div>
+        </div>
+
+        <div>
+          <label id="label-avatar" class="block text-sm font-semibold text-slate-700 mb-2">اختر صورتك الرمزية</label>
+          <div class="grid grid-cols-4 gap-3" id="avatar-grid">
+            <!-- Avatars will be injected dynamically -->
+          </div>
+        </div>
+
+        <button type="submit" id="btn-enter" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+          <span>دخول المحادثة</span>
+          <i class="fa-solid fa-arrow-right-to-bracket ml-1"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main App Layout -->
+  <div id="app-screen" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between shadow-sm z-30">
+      <div class="flex items-center gap-3">
+        <!-- Mobile Sidebar Toggle -->
+        <button id="sidebar-toggle" class="md:hidden p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+        <!-- Logo -->
+        <div class="flex items-center gap-2">
+          <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-lg">
+            <i class="fa-solid fa-wifi"></i>
+          </div>
+          <div>
+            <h1 id="header-title" class="font-bold text-sm sm:text-base text-slate-800 leading-tight">محادثة واي فاي المحلية</h1>
+            <p id="header-subtitle" class="text-[10px] text-emerald-600 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+              متصل بالشبكة المحلية
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="flex items-center gap-2">
+        <!-- QR Code Share Button -->
+        <button id="qr-share-btn" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold py-1.5 px-3 rounded-xl flex items-center gap-1.5 transition text-xs sm:text-sm">
+          <i class="fa-solid fa-qrcode"></i>
+          <span id="btn-invite-text" class="hidden sm:inline">دعوة أجهزة</span>
+        </button>
+
+        <!-- Language Toggle -->
+        <button id="lang-toggle-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-1.5 px-2.5 rounded-xl flex items-center gap-1 transition text-xs">
+          <i class="fa-solid fa-globe text-indigo-600"></i>
+          <span id="app-lang-name">English</span>
+        </button>
+
+        <!-- Current User Info -->
+        <div class="flex items-center gap-2 border-r border-slate-100 pr-2 mr-2">
+          <span id="current-user-avatar" class="text-2xl">🐱</span>
+          <div class="hidden md:block text-right">
+            <div id="current-user-name" class="font-bold text-xs text-slate-800">احمد</div>
+            <div class="text-[10px] text-slate-400">نشط</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex overflow-hidden relative">
+      <!-- Sidebar (Rooms & Navigation) -->
+      <aside id="sidebar" class="fixed inset-y-0 right-0 z-40 w-72 bg-white border-l border-slate-100 flex flex-col transition-transform duration-300 transform translate-x-full md:relative md:translate-x-0">
+        <!-- Sidebar Header (For Mobile Close) -->
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between md:hidden">
+          <h3 id="sidebar-title" class="font-bold text-slate-800">الغرف / Rooms</h3>
+          <button id="sidebar-close" class="p-1 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Add Room Button -->
+        <div class="p-4">
+          <button id="btn-create-room" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-sm border border-slate-200 border-dashed">
+            <i class="fa-solid fa-plus text-indigo-600"></i>
+            <span id="btn-create-room-text">إنشاء غرفة جديدة</span>
+          </button>
+        </div>
+
+        <!-- Rooms List -->
+        <div class="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+          <h4 id="label-room-section" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">الغرف المتاحة</h4>
+          <div id="rooms-list-container" class="space-y-1.5">
+            <!-- Dynamic list of rooms -->
+          </div>
+        </div>
+      </aside>
+
+      <!-- Sidebar Overlay for mobile -->
+      <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/40 z-30 md:hidden transition-opacity"></div>
+
+      <!-- Chat Container -->
+      <main class="flex-1 flex flex-col bg-slate-50 overflow-hidden">
+        <!-- Current Room Header -->
+        <div class="bg-white border-b border-slate-100 px-6 py-3.5 flex items-center justify-between">
+          <div>
+            <h2 id="active-room-title" class="font-bold text-slate-800">العامة / General</h2>
+            <p id="active-room-creator" class="text-[10px] text-slate-400 mt-0.5">غرفة افتراضية للنظام</p>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+              <i class="fa-solid fa-users"></i>
+              <span id="active-room-users">1</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Messages scroll area -->
+        <div id="messages-container" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 flex flex-col justify-end">
+          <div class="flex-1"></div> <!-- Spacer to push messages to bottom -->
+          <div id="messages-list" class="space-y-4">
+            <!-- Messages go here -->
+          </div>
+        </div>
+
+        <!-- Typing Indicator Container -->
+        <div id="typing-indicator" class="hidden px-6 py-2 text-xs text-slate-500 italic flex items-center gap-2 bg-gradient-to-t from-slate-50">
+          <span class="flex gap-1">
+            <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
+            <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+            <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+          </span>
+          <span id="typing-text">يكتب الآن...</span>
+        </div>
+
+        <!-- Input Area / Controls -->
+        <div class="bg-white border-t border-slate-100 p-3 sm:p-4">
+          <!-- Voice Recording Stats Banner (Shown during active voice recording) -->
+          <div id="recording-banner" class="hidden bg-rose-50 border border-rose-100 rounded-xl px-4 py-2 mb-3 flex items-center justify-between text-rose-700 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+              <span id="recording-text" class="font-semibold">جاري تسجيل ملاحظة صوتية...</span>
+              <span id="recording-timer" class="font-bold font-mono">00:00</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="cancel-record-btn" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold py-1 px-2.5 rounded-lg transition">
+                <i class="fa-solid fa-trash-can mr-1"></i> إلغاء
+              </button>
+              <button id="stop-record-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-1 px-3 rounded-lg transition shadow-sm">
+                <i class="fa-solid fa-square mr-1"></i> إيقاف وإرسال
+              </button>
+            </div>
+          </div>
+
+          <form id="message-form" class="flex items-center gap-2">
+            <!-- Hidden inputs -->
+            <input type="file" id="file-input" class="hidden">
+
+            <!-- Attach File Button -->
+            <button type="button" id="attach-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 w-11 h-11 rounded-xl flex items-center justify-center transition border border-slate-200">
+              <i class="fa-solid fa-paperclip text-lg"></i>
+            </button>
+
+            <!-- Record Voice Note Button -->
+            <button type="button" id="record-btn" class="bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 w-11 h-11 rounded-xl flex items-center justify-center transition border border-slate-200">
+              <i class="fa-solid fa-microphone text-lg"></i>
+            </button>
+
+            <!-- Text Input -->
+            <div class="flex-1 relative">
+              <input type="text" id="message-input" autocomplete="off"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm"
+                placeholder="اكتب رسالتك هنا...">
+            </div>
+
+            <!-- Send Button -->
+            <button type="submit" id="send-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white w-11 h-11 rounded-xl flex items-center justify-center transition shadow-md shadow-indigo-100">
+              <i class="fa-solid fa-paper-plane text-base transform rotate-180" id="send-icon"></i>
+            </button>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Invite & Connection Modal -->
+  <div id="invite-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative">
+      <button id="invite-modal-close" class="absolute top-4 left-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+      <div class="text-center mt-2 mb-4">
+        <h3 id="invite-title" class="font-bold text-lg text-slate-800">الاتصال عبر الـ Wi-Fi</h3>
+        <p id="invite-subtitle" class="text-xs text-slate-400 mt-1">اجعل الأجهزة الأخرى على نفس شبكتك تتصل بالمسح</p>
+      </div>
+
+      <!-- QR Code display container -->
+      <div class="flex justify-center mb-5 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+        <canvas id="qr-canvas"></canvas>
+      </div>
+
+      <!-- Network Address options -->
+      <div class="space-y-3">
+        <label id="label-addresses" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">عناوين الاتصال المتاحة:</label>
+        <div id="ips-list-container" class="space-y-1.5">
+          <!-- IPs will be injected dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Room Modal -->
+  <div id="room-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative">
+      <button id="room-modal-close" class="absolute top-4 left-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+      <div class="text-center mt-2 mb-4">
+        <h3 id="room-modal-title" class="font-bold text-lg text-slate-800">إنشاء غرفة جديدة</h3>
+        <p id="room-modal-subtitle" class="text-xs text-slate-400 mt-1">تواصل مع الآخرين في موضوع مخصص</p>
+      </div>
+
+      <form id="create-room-form" class="space-y-4">
+        <div>
+          <label id="label-room-name" class="block text-sm font-semibold text-slate-700 mb-1">اسم الغرفة</label>
+          <input type="text" id="room-name-input" required minlength="3" maxlength="20"
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm"
+            placeholder="مثال: مطوري الويب">
+        </div>
+        <button type="submit" id="btn-submit-room" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-2.5 rounded-xl transition shadow-md">
+          إنشاء ودخول الغرفة
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Image Zoom Overlay Modal -->
+  <div id="image-modal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+    <button id="image-modal-close" class="absolute top-4 left-4 text-white hover:text-slate-200 text-3xl">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <img id="image-modal-img" class="max-w-full max-h-[85vh] rounded-lg shadow-lg" src="" alt="Full Screen Preview">
+  </div>
+
+  <!-- Socket.io client library -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Client code script -->
+  <script src="/app.js"></script>
+</body>
+</html>
